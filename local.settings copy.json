@@ -1,0 +1,14 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "WEBHOOK_STORAGE": "",
+    "QUEUE_NAME": "",
+    "WIKI_HTML_CONTAINER_NAME": "",
+    "LANGUAGE_SERVICE_ENDPOINT": "",
+    "LANGUAGE_SERVICE_API_KEY": "",
+    "QNA_PROJECT_NAME": "",
+    "QNA_DEPLOYMENT_NAME": ""
+  }
+}
