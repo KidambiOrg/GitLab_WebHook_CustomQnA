@@ -9,6 +9,9 @@
     "LANGUAGE_SERVICE_ENDPOINT": "",
     "LANGUAGE_SERVICE_API_KEY": "",
     "QNA_PROJECT_NAME": "",
-    "QNA_DEPLOYMENT_NAME": ""
+    "QNA_DEPLOYMENT_NAME": "",
+    "GITLAB_API_URL":"https://gitlab.com/api/v4/projects/{projectId}/wikis/{wikislug}?render_html=true",
+    "GITLAB_API_TOKEN":""
+    
   }
 }

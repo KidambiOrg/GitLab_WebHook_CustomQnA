@@ -25,7 +25,7 @@ async def upload_string_and_generate_sas(content: str,data: WebhookModel) -> str
     :return: SAS URL for the uploaded blob.
     """
     # Generate a unique blob name
-    blob_name = f"{data.projectname} - {data.wikiTitle}.html"
+    blob_name = f"{data.projectName} - {data.wikiSlug}.html"
 
    
 

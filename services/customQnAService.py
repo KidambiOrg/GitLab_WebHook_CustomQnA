@@ -22,7 +22,7 @@ async def Upsert_Knowledge_base(source_url:str,data: WebhookModel) :
         )
         # check if source display name contains the project name
         source_found = False
-        display_name = f"{data.projectname} - {data.wikiTitle}"
+        display_name = f"{data.projectName} - {data.wikiSlug}"
         try:
             async for source in sources:
                 if display_name in source['displayName']:
