@@ -5,8 +5,8 @@ import json
 import os
 from services.AzureBlobStorage import delete_blob, upload_string_and_generate_sas
 from services.AzureQueueService import add_to_queue
-from services.customQnAService import Delete_Knowledge_base, Upsert_Knowledge_base
-from services.markdownToHTML import  fetch_gitlab_wiki_content
+from services.CustomQnAService import Delete_Knowledge_base, Upsert_Knowledge_base
+from services.GitlabServices import  fetch_gitlab_wiki_content
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 

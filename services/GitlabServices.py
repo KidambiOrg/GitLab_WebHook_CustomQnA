@@ -21,7 +21,7 @@ def fetch_gitlab_wiki_content(webhook_model: WebhookModel):
 
     # Set up headers for the request
     headers = {
-        'PRIVATE-TOKEN': private_token
+        'Authorization': f"Bearer {private_token}"
     }
 
     # Make the GET request to the GitLab API
