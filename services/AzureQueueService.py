@@ -1,11 +1,19 @@
 import os
-from azure.storage.queue import BinaryBase64EncodePolicy,QueueServiceClient
- 
+from azure.storage.queue import BinaryBase64EncodePolicy,QueueServiceClient 
 from models.webhook_model import WebhookModel
 
-# Function to add webhook model to Azure Queue
 
 def add_to_queue(webhook_model: WebhookModel):
+
+    """
+    Add a webhook model to the Azure Queue.
+    This function serializes the webhook model to JSON and sends it to the Azure Queue.
+    
+    :param webhook_model: The WebhookModel instance to be added to the queue.
+
+    """
+
+
     # Get the connection string and queue name from environment variables
     connection_string = os.getenv('WEBHOOK_STORAGE')
     queue_name = os.getenv('QUEUE_NAME')

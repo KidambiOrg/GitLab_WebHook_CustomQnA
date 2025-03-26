@@ -3,9 +3,9 @@ import logging
 from models.webhook_model import WebhookModel
 import json
 import os
-from services.AzureBlobStorage import upload_string_and_generate_sas
+from services.AzureBlobStorage import delete_blob, upload_string_and_generate_sas
 from services.AzureQueueService import add_to_queue
-from services.customQnAService import Upsert_Knowledge_base
+from services.customQnAService import Delete_Knowledge_base, Upsert_Knowledge_base
 from services.markdownToHTML import  fetch_gitlab_wiki_content
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
@@ -38,14 +38,22 @@ async def WikiEventQueueParser(azqueue: func.QueueMessage):
     # Parse the message and add to queue
     message_body = azqueue.get_body().decode('utf-8')
     webhook_data = WebhookModel.model_validate_json(message_body)
-   
-    html  = fetch_gitlab_wiki_content(webhook_data)
 
-    # now we can upload the html to blob storage
-    blob_url = await upload_string_and_generate_sas(html,webhook_data)
+    if webhook_data.wikiAction == "delete":
+        # Delete the source from the knowledge base        
+        await Delete_Knowledge_base( webhook_data)
 
-    # now call the Upsert_Knowledge_base function to add the blob url to the knowledge base
-    await Upsert_Knowledge_base(blob_url, webhook_data)
+        # delete the blob from the blob storage
+        await delete_blob(webhook_data)
+      
+
+    else:
+        html  = fetch_gitlab_wiki_content(webhook_data)
+        # now we can upload the html to blob storage
+        blob_url = await upload_string_and_generate_sas(html,webhook_data)
+
+        # now call the Upsert_Knowledge_base function to add the blob url to the knowledge base
+        await Upsert_Knowledge_base(blob_url, webhook_data)
 
     logging.info('------------------ !!! DONE !!! ------------------')
 

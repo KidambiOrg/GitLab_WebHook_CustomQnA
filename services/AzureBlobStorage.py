@@ -17,6 +17,27 @@ blob_service_client = BlobServiceClient.from_connection_string(connection_string
 
 container_name = os.getenv("WIKI_HTML_CONTAINER_NAME")
 
+
+async def delete_blob(data: WebhookModel) -> None:
+    """
+    Deletes a blob from the container.
+
+    :param data: The WebhookModel containing project and wiki information.
+    """
+    # Generate the blob name
+    blob_name = f"{data.projectName} - {data.wikiSlug}.html"
+
+    # Get the container client
+    container_client = blob_service_client.get_container_client(container_name)
+
+    # Delete the blob if it exists
+    try:
+        blob_client = container_client.get_blob_client(blob_name)
+        await blob_client.delete_blob()
+    except Exception as e:
+        pass  # Blob likely doesn't exist
+    
+
 async def upload_string_and_generate_sas(content: str,data: WebhookModel) -> str:
     """
     Uploads a string to a blob and generates a SAS URL for the blob.
