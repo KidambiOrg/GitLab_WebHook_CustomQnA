@@ -1,7 +1,7 @@
 from azure.core.credentials import AzureKeyCredential
 from azure.ai.language.questionanswering.authoring.aio import AuthoringClient
 import os
-
+import logging
 from models.webhook_model import WebhookModel
 
 
@@ -13,7 +13,6 @@ async def Delete_Knowledge_base(data: WebhookModel):
 
     :param data: The WebhookModel containing project and wiki information.
     """
-
 
     endpoint = os.environ["LANGUAGE_SERVICE_ENDPOINT"]
     key = os.environ["LANGUAGE_SERVICE_API_KEY"]
@@ -39,8 +38,10 @@ async def Delete_Knowledge_base(data: WebhookModel):
         except Exception as e:            
             source_found = False
     
+        
         if source_found:
-            # Delete the source if found using begin_update_sources with 'remove' operation
+            logging.info(f'******* Deleting knowledge base source: {sourceName} .....')
+            # Delete the source if found using begin_update_sources with 'delete' operation
             sources_poller = await client.begin_update_sources(
                 project_name=project_name,
                 sources=[
@@ -54,6 +55,16 @@ async def Delete_Knowledge_base(data: WebhookModel):
                 ]
             )
             await sources_poller.result()
+            logging.info(f'******* Knowledge base source deleted: {sourceName}')
+
+            logging.info(f'******* Deploying project: {project_name} .....')
+            poller = await client.begin_deploy_project(
+                project_name=project_name,
+                deployment_name=os.environ["QNA_DEPLOYMENT_NAME"]
+            )
+            await poller.result()
+            logging.info(f'******* Project deployed: {project_name}')
+
             return
 
 
@@ -77,6 +88,8 @@ async def Upsert_Knowledge_base(source_url:str,data: WebhookModel) :
     # Decode the SAS URL
     decoded_sas_url = source_url.replace('%3A', ':').replace('%2F', '/').replace('%3F', '?').replace('%3D', '=').replace('%26', '&')
      
+    logging.info(f'******* Upserting knowledge base source : {display_name}')
+
 
     client = AuthoringClient(endpoint, AzureKeyCredential(key))
     async with client:
@@ -105,6 +118,15 @@ async def Upsert_Knowledge_base(source_url:str,data: WebhookModel) :
         ]
         )
         await sources_poller.result()   
+        logging.info(f'******* Upserted knowledge base source : {display_name}')
+
+        logging.info(f'******* Deploying project: {project_name} .....')
+        poller = await client.begin_deploy_project(
+                project_name=project_name,
+                deployment_name=os.environ["QNA_DEPLOYMENT_NAME"]
+            )
+        await poller.result()
+        logging.info(f'******* Project deployed: {project_name}')
         
         return
 
