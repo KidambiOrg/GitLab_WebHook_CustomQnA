@@ -1,5 +1,6 @@
 import azure.functions as func
 import logging
+from handlers.authheaderhandler import authorize
 from models.webhook_model import WebhookModel
 import json
 import os
@@ -11,14 +12,11 @@ from services.GitlabServices import  fetch_gitlab_wiki_content
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
 @app.route(route="ParseFile", methods=["POST"])
+@authorize
 def ParseFile(req: func.HttpRequest) -> func.HttpResponse:
+    
     logging.info('Python HTTP trigger function processed a request.')
-
-    isValid = isValidRequest(req)
-    if not isValid:
-        logging.error("Invalid Secret Token")    
-        return func.HttpResponse(json.dumps({"error": "Invalid request"}), status_code=400, mimetype="application/json")
-
+ 
     try:
         req_body = req.get_json()
         webhook_data =  WebhookModel.model_validate_json(json.dumps(req_body))
@@ -33,7 +31,7 @@ def ParseFile(req: func.HttpRequest) -> func.HttpResponse:
     return func.HttpResponse("OK", status_code=200, mimetype="application/json")
 
 
-@app.queue_trigger(arg_name="azqueue", queue_name=os.getenv("QUEUE_NAME", "wikievents"),
+@app.queue_trigger(arg_name="azqueue", queue_name=os.getenv("QUEUE_NAME"),
                                connection="WEBHOOK_STORAGE") 
 async def WikiEventQueueParser(azqueue: func.QueueMessage):
     logging.info('Python Queue trigger processed a message: %s',
@@ -62,13 +60,4 @@ async def WikiEventQueueParser(azqueue: func.QueueMessage):
 
     logging.info('------------------ !!! DONE !!! ------------------')
 
-
-def isValidRequest(request: func.HttpRequest) -> bool:
-    """
-    Check if the request is valid.
-    """
-    if request.method != "POST":
-        return False   
-    if request.headers.get("X-Gitlab-Token") != os.getenv("GITLAB_WEBHOOK_SECRET_TOKEN"):
-        return False
-    return True
+ 
