@@ -14,19 +14,23 @@ app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 def ParseFile(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
+    isValid = isValidRequest(req)
+    if not isValid:
+        logging.error("Invalid Secret Token")    
+        return func.HttpResponse(json.dumps({"error": "Invalid request"}), status_code=400, mimetype="application/json")
+
     try:
         req_body = req.get_json()
         webhook_data =  WebhookModel.model_validate_json(json.dumps(req_body))
         add_to_queue(webhook_data)
     except ValueError as e:
-        logging.error(f"ValueError: {e}")
-       
-        # return func.HttpResponse(json.dumps({"error": "Invalid JSON"}), status_code=400, mimetype="application/json")
+        logging.error(f"ValueError: {e}")       
+        return func.HttpResponse(json.dumps({"error": "Invalid JSON"}), status_code=400, mimetype="application/json")
     except Exception as e:
         logging.error(f"Error processing request: {e}")
-        #return func.HttpResponse(json.dumps({"error": str(e)}), status_code=500, mimetype="application/json")
+        return func.HttpResponse(json.dumps({"error": str(e)}), status_code=500, mimetype="application/json")
 
-    return func.HttpResponse(webhook_data.to_json(), status_code=200, mimetype="application/json")
+    return func.HttpResponse("OK", status_code=200, mimetype="application/json")
 
 
 @app.queue_trigger(arg_name="azqueue", queue_name=os.getenv("QUEUE_NAME", "wikievents"),
@@ -48,8 +52,9 @@ async def WikiEventQueueParser(azqueue: func.QueueMessage):
       
 
     else:
-        html  = fetch_gitlab_wiki_content(webhook_data)
-        # now we can upload the html to blob storage
+        html  = await fetch_gitlab_wiki_content(webhook_data)
+
+        # now we can upload the html to blob storage and get the blob sas url
         blob_url = await upload_string_and_generate_sas(html,webhook_data)
 
         # now call the Upsert_Knowledge_base function to add the blob url to the knowledge base
@@ -57,3 +62,13 @@ async def WikiEventQueueParser(azqueue: func.QueueMessage):
 
     logging.info('------------------ !!! DONE !!! ------------------')
 
+
+def isValidRequest(request: func.HttpRequest) -> bool:
+    """
+    Check if the request is valid.
+    """
+    if request.method != "POST":
+        return False   
+    if request.headers.get("X-Gitlab-Token") != os.getenv("GITLAB_WEBHOOK_SECRET_TOKEN"):
+        return False
+    return True

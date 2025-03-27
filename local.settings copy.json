@@ -11,7 +11,8 @@
     "QNA_PROJECT_NAME": "",
     "QNA_DEPLOYMENT_NAME": "",
     "GITLAB_API_URL":"https://gitlab.com/api/v4/projects/{projectId}/wikis/{wikislug}?render_html=true",
-    "GITLAB_API_TOKEN":""
+    "GITLAB_API_TOKEN":"",
+     "GITLAB_WEBHOOK_SECRET_TOKEN":"secret_token"
     
   }
 }

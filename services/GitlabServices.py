@@ -1,10 +1,10 @@
-import requests
+import aiohttp
 from models.webhook_model import WebhookModel
 import os
- 
-def fetch_gitlab_wiki_content(webhook_model: WebhookModel):
+
+async def fetch_gitlab_wiki_content(webhook_model: WebhookModel):
     """
-    Fetches the content of a GitLab wiki page using the GitLab API.
+    Fetches the content of a GitLab wiki page using the GitLab API asynchronously.
 
     Args:
         webhook_model (WebhookModel): The webhook model containing projectId and wikislug.
@@ -24,11 +24,12 @@ def fetch_gitlab_wiki_content(webhook_model: WebhookModel):
         'Authorization': f"Bearer {private_token}"
     }
 
-    # Make the GET request to the GitLab API
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()  # Raise an exception for HTTP errors
-
-    # Extract and return the "content" from the response
-    return response.json().get('content')
+    # Make the GET request to the GitLab API asynchronously
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, headers=headers) as response:
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            # Extract and return the "content" from the response
+            json_response = await response.json()
+            return json_response.get('content')
 
 
